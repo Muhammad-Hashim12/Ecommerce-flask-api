@@ -21,8 +21,6 @@ migrate = Migrate()
 migrate.init_app(app,db)
 
 #model
-
-
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     username =db.Column(db.String(255), nullable = False,unique=True)
@@ -31,6 +29,7 @@ class Customer(db.Model):
     phno =db.Column(db.BigInteger, nullable = False)
     is_admin = db.Column(db.Boolean, default =False)
     order = db.relationship('Order',backref='oredred',lazy = True)
+    payment_detail = db.relationship('Payment_Detail',backref='payment_details',lazy = True)
     payment = db.relationship('Payment',backref='payment',lazy = True)
     
 class Category(db.Model):
@@ -60,17 +59,18 @@ class Order(db.Model):
     oredred_customer = db.Column(db.Integer, db.ForeignKey('customer.id'))
     ordered_category = db.Column(db.Integer, db.ForeignKey('category.id'))
     ordered_product = db.Column(db.Integer, db.ForeignKey('product.id'))
-    pay = db.relationship('Payment',backref='payed_by',lazy=True) 
-
 
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key =True)
-    total_cost = db.Column(db.Integer )
+    total_cost = db.Column(db.Integer)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
+    
+class Payment_Detail(db.Model):
+    id = db.Column(db.Integer, primary_key =True)
     address = db.Column(db.String(255), nullable = False)
     payment_date = db.Column(db.DateTime, default = datetime.utcnow)
     is_payed = db.Column(db.Boolean, default = False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
     
 
 @api.route('/customer')
@@ -339,14 +339,25 @@ class Order_Details(Resource):
     
 # @api.route('/payment')
 # class Paying(Resource):
-#     @jwt_required()
-#     def post(self):
-#         username = get_jwt_identity()
-#         customer = Customer.query.filter_by(username = username).first()
-#         if customer:
-#             orders = Order.query.filter_by(oredred_customer = customer.id)
+    # @jwt_required()
+    # def post(self):
+    #     username = get_jwt_identity()
+    #     customer = Customer.query.filter_by(username = username).first()
+    #     if customer:
+    #         orders = Order.query.filter_by(oredred_customer = customer.id).all()
+    #         total_amount = 0
+    #         for order in orders:
+    #              total_amount += order.total_prize
+    #         payment =Payment(address = address,total_cost =total_amount,)
+    # def get(self):
+    #     username = get_jwt_identity()
+    #     customer = Customer.query.filter_by(username = username).first()
+    #     if customer:
+    #         Payment.query.filter_by()
             
-#             payment =Payment(address = address,total_cost = )
+# @api.route('/reciept')
+# class Reciept(Resource):
+#     def get()
             
     
     
