@@ -65,6 +65,9 @@ class Payment(db.Model):
     total_cost = db.Column(db.Integer)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
     
+    # def __repr__(self):
+        
+    
 class Payment_Detail(db.Model):
     id = db.Column(db.Integer, primary_key =True)
     address = db.Column(db.String(255), nullable = False)
@@ -336,30 +339,44 @@ class Order_Details(Resource):
             return jsonify({"message":f"No order took placed by {customer.username}"})   
 
         return jsonify({"message":"not authorized user"})
+
+
+@api.route('/order_details/<int:order_id>')        
+class Del_Order(Resource):
+    @jwt_required()     
+    def delete(self,order_id):
+        username = get_jwt_identity()
+        customer = Customer.query.filter_by(username = username).first()
+        if customer:
+            order_deatil = Order.query.filter_by(oredred_customer = customer.id,id = order_id).first()
+            db.session.delete(order_deatil)
+            db.session.commit()
+            payment = Payment.query.filter_by(customer_id = customer.id).first()
+            return jsonify({"message":"Deleted successfully"})
+        return jsonify({"message":"not authorized user"})
+
+
+
+@api.route('/payment')
+class Paying(Resource):
+    @jwt_required()
+    def get(self):
+        username = get_jwt_identity()
+        customer = Customer.query.filter_by(username = username).first()
+        if customer:
+            orders = Order.query.filter_by(oredred_customer = customer.id).all()
+            total_cost = 0
+            for order in orders:
+                total_cost += order.total_prize 
+            payment = Payment(customer_id = customer.id,total_cost = total_cost)
+            db.session.add(payment)
+            db.session.commit()
+            return jsonify({"Total amount to paid ":total_cost})
+        
+        return jsonify({"message":"not authorized user"})
     
-# @api.route('/payment')
-# class Paying(Resource):
-    # @jwt_required()
-    # def post(self):
-    #     username = get_jwt_identity()
-    #     customer = Customer.query.filter_by(username = username).first()
-    #     if customer:
-    #         orders = Order.query.filter_by(oredred_customer = customer.id).all()
-    #         total_amount = 0
-    #         for order in orders:
-    #              total_amount += order.total_prize
-    #         payment =Payment(address = address,total_cost =total_amount,)
-    # def get(self):
-    #     username = get_jwt_identity()
-    #     customer = Customer.query.filter_by(username = username).first()
-    #     if customer:
-    #         Payment.query.filter_by()
-            
-# @api.route('/reciept')
-# class Reciept(Resource):
-#     def get()
-            
-    
-    
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
